@@ -1,163 +1,105 @@
-/* =============================================================
-   GCC School ERP — Theme System
-   ✅ SINGLE SOURCE OF TRUTH — change this file to restyle the app
-   ============================================================= */
-
 @import "tailwindcss";
 
-/* ─── Design Tokens ──────────────────────────────────────────── */
-:root {
-  /* Brand Colors (#890081 base) */
-  --color-primary: #890081;
-  --color-primary-light: #B428A6;
-  --color-primary-dark: #62005B;
-  --color-primary-50: #FCF0FC;
-  --color-primary-100: #F5D6F5;
-  --color-primary-200: #EBB3EB;
-  --color-primary-300: #DF8EDF;
-  --color-primary-400: #CD62CD;
-  --color-primary-500: #890081;
-  --color-primary-600: #74006D;
-  --color-primary-700: #5F005A;
-  --color-primary-800: #4F004A;
-  --color-primary-900: #42003F;
+@theme {
+  --font-sans: 'Inter', system-ui, sans-serif;
+  --font-display: 'Outfit', system-ui, sans-serif;
 
-  /* Accent */
-  --color-accent: #E84393;
-  --color-accent-light: #F06BAE;
+  --color-primary-50: #f4f6fb;
+  --color-primary-100: #e7ecf6;
+  --color-primary-200: #c9d7ea;
+  --color-primary-300: #9cb9d9;
+  --color-primary-400: #6995c3;
+  --color-primary-500: #4679ac;
+  --color-primary-600: #355f8e;
+  --color-primary-700: #2b4d74;
+  --color-primary-800: #264261;
+  --color-primary-900: #233852;
+  --color-primary-950: #0a111a; /* deep neon background */
+  
+  --color-accent-400: #00f0ff; /* cyan glow */
+  --color-accent-500: #bf00ff; /* neon violet */
 
-  /* Light Mode Surfaces */
-  --bg-app:       #F8F7FA;
-  --bg-surface:   #FFFFFF;
-  --bg-surface-2: #F3F1F6;
-  --bg-border:    #E5E1EC;
+  --color-surface: rgba(255, 255, 255, 0.03);
+  --color-surface-hover: rgba(255, 255, 255, 0.08);
+  --color-surface-border: rgba(255, 255, 255, 0.1);
+  --color-surface-active: rgba(255, 255, 255, 0.12);
 
-  /* Text */
-  --text-primary:   #1A1523;
-  --text-secondary: #6B6580;
-  --text-muted:     #9E98B0;
-  --text-inverse:   #FFFFFF;
+  --animate-glow: glow 2s ease-in-out infinite alternate;
+  --animate-float: float 6s ease-in-out infinite;
+  
+  @keyframes glow {
+    from {
+      box-shadow: 0 0 10px -2px rgba(191, 0, 255, 0.2), 0 0 20px -2px rgba(0, 240, 255, 0.2);
+    }
+    to {
+      box-shadow: 0 0 20px 2px rgba(191, 0, 255, 0.4), 0 0 40px 2px rgba(0, 240, 255, 0.4);
+    }
+  }
 
-  /* Sidebar */
-  --sidebar-bg:     #890081;
-  --sidebar-text:   #F5D6F5;
-  --sidebar-active: rgba(255, 255, 255, 0.15);
-  --sidebar-hover:  rgba(255, 255, 255, 0.08);
-  --sidebar-icon:   #EBB3EB;
-
-  /* Status Colors */
-  --color-success:  #16A34A;
-  --color-warning:  #D97706;
-  --color-danger:   #DC2626;
-  --color-info:     #2563EB;
-
-  /* Shadows */
-  --shadow-sm:  0 1px 3px rgba(137, 0, 129, 0.08);
-  --shadow-md:  0 4px 16px rgba(137, 0, 129, 0.12);
-  --shadow-lg:  0 8px 32px rgba(137, 0, 129, 0.16);
-  --shadow-xl:  0 16px 64px rgba(137, 0, 129, 0.20);
-
-  /* Border Radius */
-  --radius-sm:  6px;
-  --radius-md:  10px;
-  --radius-lg:  16px;
-  --radius-xl:  24px;
-  --radius-full: 9999px;
-
-  /* Transitions */
-  --transition-fast:   150ms ease;
-  --transition-base:   250ms ease;
-  --transition-slow:   400ms ease;
-
-  /* Typography */
-  --font-sans: 'Inter', system-ui, -apple-system, sans-serif;
-  --font-display: 'Plus Jakarta Sans', var(--font-sans);
+  @keyframes float {
+    0% {
+      transform: translateY(0px);
+    }
+    50% {
+      transform: translateY(-10px);
+    }
+    100% {
+      transform: translateY(0px);
+    }
+  }
 }
 
-/* ─── Dark Mode Tokens ───────────────────────────────────────── */
-[data-theme="dark"] {
-  --bg-app:       #12101A;
-  --bg-surface:   #1C1825;
-  --bg-surface-2: #241F30;
-  --bg-border:    #332D42;
-
-  --text-primary:   #F1EDF8;
-  --text-secondary: #A49BBE;
-  --text-muted:     #6B6380;
-  --text-inverse:   #1A1523;
-
-  --sidebar-bg:     #1C1825;
-  --sidebar-text:   #EBB3EB;
-  --sidebar-active: rgba(137, 0, 129, 0.45);
-  --sidebar-hover:  rgba(137, 0, 129, 0.20);
-  --sidebar-icon:   #CD62CD;
-
-  --shadow-sm:  0 1px 3px rgba(0, 0, 0, 0.30);
-  --shadow-md:  0 4px 16px rgba(0, 0, 0, 0.40);
-  --shadow-lg:  0 8px 32px rgba(0, 0, 0, 0.50);
-  --shadow-xl:  0 16px 64px rgba(0, 0, 0, 0.60);
-}
-
-/* ─── Global Resets ──────────────────────────────────────────── */
-*, *::before, *::after { box-sizing: border-box; }
-
+/* Base Styles */
 html {
   font-family: var(--font-sans);
-  -webkit-font-smoothing: antialiased;
-  color-scheme: light dark;
+  color-scheme: dark; /* Force dark mode for the premium look */
 }
 
 body {
   margin: 0;
-  background: var(--bg-app);
-  color: var(--text-primary);
-  transition: background var(--transition-base), color var(--transition-base);
+  background-color: var(--color-primary-950);
+  background-image: 
+    radial-gradient(circle at 15% 50%, rgba(191, 0, 255, 0.08), transparent 25%),
+    radial-gradient(circle at 85% 30%, rgba(0, 240, 255, 0.08), transparent 25%);
+  color: #e2e8f0;
   min-height: 100vh;
+  overflow-x: hidden;
 }
 
-/* ─── Scrollbar ───────────────────────────────────────────────  */
-::-webkit-scrollbar { width: 6px; height: 6px; }
-::-webkit-scrollbar-track { background: transparent; }
-::-webkit-scrollbar-thumb { background: var(--bg-border); border-radius: var(--radius-full); }
-::-webkit-scrollbar-thumb:hover { background: var(--color-primary-300); }
+/* Custom Scrollbar for modern look */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 10px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--color-accent-500);
+}
 
-/* ─── Focus Ring ────────────────────────────────────────────── */
-:focus-visible {
-  outline: 2px solid var(--color-primary);
+/* Focus Utility */
+*:focus-visible {
+  outline: 2px solid var(--color-accent-400);
   outline-offset: 2px;
 }
 
-/* ─── Typography Utilities ──────────────────────────────────── */
-.text-display { font-family: var(--font-display); font-weight: 700; }
-
-/* ─── Animation Utilities ───────────────────────────────────── */
-@keyframes fadeIn {
-  from { opacity: 0; transform: translateY(8px); }
-  to   { opacity: 1; transform: translateY(0); }
-}
-@keyframes slideIn {
-  from { opacity: 0; transform: translateX(-16px); }
-  to   { opacity: 1; transform: translateX(0); }
-}
-@keyframes pulse-ring {
-  0%   { transform: scale(1); opacity: 1; }
-  100% { transform: scale(1.5); opacity: 0; }
-}
-@keyframes shimmer {
-  from { background-position: -400px 0; }
-  to   { background-position: 400px 0; }
+/* Shared Glassmorphism Utilities */
+.glass-panel {
+  background: var(--color-surface);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid var(--color-surface-border);
+  box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.3);
 }
 
-.animate-fade-in { animation: fadeIn 0.3s ease both; }
-.animate-slide-in { animation: slideIn 0.3s ease both; }
-
-.skeleton {
-  background: linear-gradient(90deg,
-    var(--bg-surface-2) 25%,
-    var(--bg-border) 50%,
-    var(--bg-surface-2) 75%
-  );
-  background-size: 800px 100%;
-  animation: shimmer 1.5s infinite;
-  border-radius: var(--radius-sm);
+.text-gradient {
+  background: linear-gradient(135deg, var(--color-accent-400) 0%, var(--color-accent-500) 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
 }

@@ -4,7 +4,7 @@ import { useAuthStore } from '@/stores/auth.store';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { Mail, Lock, LogIn, Building2 } from 'lucide-react';
-import { api } from '@/services/api';
+import { authService } from '@/services/auth.service';
 
 export default function LoginPage() {
   const navigate = useNavigate();
@@ -21,20 +21,20 @@ export default function LoginPage() {
     setError('');
 
     try {
-      const response = await api.post(`/auth/login`, { 
+      const response = await authService.login({ 
         email, 
         password
       });
       
-      const { accessToken, refreshToken, user } = response.data.data;
+      const { accessToken, refreshToken, user } = response.data;
       setAuth(user, accessToken, refreshToken);
       
       navigate('/app/dashboard');
     } catch (err: any) {
-      if (Array.isArray(err.response?.data?.message)) {
-        setError(err.response.data.message[0]);
+      if (Array.isArray(err.data?.message)) {
+        setError(err.data.message[0]);
       } else {
-        setError(err.response?.data?.message || 'Invalid credentials');
+        setError(err.data?.message || err.message || 'Invalid credentials');
       }
     } finally {
       setLoading(false);

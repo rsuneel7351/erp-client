@@ -1,44 +1,54 @@
 import { useState, useEffect } from 'react';
-import { api } from '@/services/api';
-import { DataTable, Column } from '@/components/ui/DataTable';
-import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/Card';
+import { DataTable, type Column } from '@/components/ui/DataTable';
+import { Card, CardHeader, CardContent } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { Modal, ModalContent, ModalHeader, ModalTitle, ModalTrigger } from '@/components/ui/Modal';
-import { Plus, Search, UserCircle } from 'lucide-react';
+import { Plus, Search, UserCircle, Edit2, Trash2 } from 'lucide-react';
+import apiClient from '@/services/api.client';
 
 interface Student {
-  id: string;
-  firstName: string;
-  lastName: string;
-  email: string;
-  student?: {
-    enrollmentNumber: string;
-    bloodGroup?: string;
-  };
+  id: string; // The Student ID (not the User ID)
+  enrollmentNumber: string;
   isActive: boolean;
+  user: {
+    id: string;
+    firstName: string;
+    lastName: string;
+    email: string;
+    phone?: string;
+  };
 }
 
 export default function StudentsPage() {
   const [students, setStudents] = useState<Student[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
+  
+  // Modals state
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  
+  // Form State
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [deletingId, setDeletingId] = useState<string | null>(null);
+  const [submitting, setSubmitting] = useState(false);
+  const [formData, setFormData] = useState({
+    firstName: '',
+    lastName: '',
+    email: '',
+    enrollmentNumber: '',
+  });
 
   const fetchStudents = async () => {
     try {
       setLoading(true);
-      // Backend: we use /users with role query, or /students if separated. Let's assume /users.
-      const response = await api.get('/users', { params: { role: 'Student' } });
+      const response = await apiClient.get('/students');
       setStudents(response.data.data.data || []);
     } catch (error) {
       console.error('Failed to fetch students', error);
-      // Fallback dummy data for UI display if API fails
-      setStudents([
-        { id: '1', firstName: 'John', lastName: 'Doe', email: 'john@gccschool.com', student: { enrollmentNumber: 'EN1001' }, isActive: true },
-        { id: '2', firstName: 'Jane', lastName: 'Smith', email: 'jane@gccschool.com', student: { enrollmentNumber: 'EN1002' }, isActive: true },
-        { id: '3', firstName: 'Michael', lastName: 'Johnson', email: 'michael@gccschool.com', student: { enrollmentNumber: 'EN1003' }, isActive: false },
-      ]);
+      // Fallback dummy data removed in favor of real API errors.
+      setStudents([]);
     } finally {
       setLoading(false);
     }
@@ -47,6 +57,56 @@ export default function StudentsPage() {
   useEffect(() => {
     fetchStudents();
   }, []);
+
+  const handleOpenModal = (student?: Student) => {
+    if (student) {
+      setEditingId(student.id);
+      setFormData({
+        firstName: student.user?.firstName || '',
+        lastName: student.user?.lastName || '',
+        email: student.user?.email || '',
+        enrollmentNumber: student.enrollmentNumber || '',
+      });
+    } else {
+      setEditingId(null);
+      setFormData({ firstName: '', lastName: '', email: '', enrollmentNumber: '' });
+    }
+    setIsModalOpen(true);
+  };
+
+  const handleSave = async () => {
+    try {
+      setSubmitting(true);
+      if (editingId) {
+        await apiClient.patch(`/students/${editingId}`, formData);
+      } else {
+        await apiClient.post('/students', formData);
+      }
+      setIsModalOpen(false);
+      fetchStudents();
+    } catch (error) {
+      console.error('Failed to save student', error);
+      alert('Error saving student. Please check the data and try again.');
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  const confirmDelete = async () => {
+    if (!deletingId) return;
+    try {
+      setSubmitting(true);
+      await apiClient.delete(`/students/${deletingId}`);
+      setIsDeleteModalOpen(false);
+      fetchStudents();
+    } catch (error) {
+      console.error('Failed to delete student', error);
+      alert('Error deleting student.');
+    } finally {
+      setSubmitting(false);
+      setDeletingId(null);
+    }
+  };
 
   const columns: Column<Student>[] = [
     {
@@ -58,8 +118,8 @@ export default function StudentsPage() {
             <UserCircle className="w-5 h-5" />
           </div>
           <div>
-            <div className="font-medium">{row.firstName} {row.lastName}</div>
-            <div className="text-xs text-(--text-muted)">{row.email}</div>
+            <div className="font-medium">{row.user?.firstName} {row.user?.lastName}</div>
+            <div className="text-xs text-(--text-muted)">{row.user?.email}</div>
           </div>
         </div>
       ),
@@ -67,30 +127,29 @@ export default function StudentsPage() {
     {
       key: 'enrollmentNumber',
       header: 'Enrollment No.',
-      render: (row) => row.student?.enrollmentNumber || 'N/A',
-    },
-    {
-      key: 'status',
-      header: 'Status',
-      render: (row) => (
-        <span className={`px-2 py-1 rounded-full text-xs font-medium ${row.isActive ? 'bg-success/10 text-success' : 'bg-danger/10 text-danger'}`}>
-          {row.isActive ? 'Active' : 'Inactive'}
-        </span>
-      ),
+      render: (row) => row.enrollmentNumber || 'N/A',
     },
     {
       key: 'actions',
       header: 'Actions',
-      render: () => (
-        <Button variant="ghost" size="sm" onClick={(e) => e.stopPropagation()}>Edit</Button>
+      render: (row) => (
+        <div className="flex items-center space-x-2" onClick={(e) => e.stopPropagation()}>
+          <Button variant="ghost" size="sm" onClick={() => handleOpenModal(row)}>
+            <Edit2 className="w-4 h-4 text-blue-400" />
+          </Button>
+          <Button variant="ghost" size="sm" onClick={() => { setDeletingId(row.id); setIsDeleteModalOpen(true); }}>
+            <Trash2 className="w-4 h-4 text-red-400" />
+          </Button>
+        </div>
       ),
     }
   ];
 
   const filteredStudents = students.filter(s => 
-    s.firstName.toLowerCase().includes(search.toLowerCase()) || 
-    s.lastName.toLowerCase().includes(search.toLowerCase()) ||
-    s.email.toLowerCase().includes(search.toLowerCase())
+    s.user?.firstName?.toLowerCase().includes(search.toLowerCase()) || 
+    s.user?.lastName?.toLowerCase().includes(search.toLowerCase()) ||
+    s.user?.email?.toLowerCase().includes(search.toLowerCase()) ||
+    s.enrollmentNumber?.toLowerCase().includes(search.toLowerCase())
   );
 
   return (
@@ -101,25 +160,9 @@ export default function StudentsPage() {
           <p className="text-(--text-muted)">Manage all student profiles and enrollment data.</p>
         </div>
         
-        <Modal open={isModalOpen} onOpenChange={setIsModalOpen}>
-          <ModalTrigger asChild>
-            <Button leftIcon={<Plus className="w-4 h-4" />}>Add Student</Button>
-          </ModalTrigger>
-          <ModalContent>
-            <ModalHeader>
-              <ModalTitle>Add New Student</ModalTitle>
-            </ModalHeader>
-            <div className="grid gap-4 py-4">
-              <div className="grid grid-cols-2 gap-4">
-                <Input label="First Name" placeholder="John" />
-                <Input label="Last Name" placeholder="Doe" />
-              </div>
-              <Input label="Email Address" type="email" placeholder="john@gccschool.com" />
-              <Input label="Enrollment Number" placeholder="EN1004" />
-              <Button onClick={() => setIsModalOpen(false)} className="mt-2 w-full">Save Student</Button>
-            </div>
-          </ModalContent>
-        </Modal>
+        <Button leftIcon={<Plus className="w-4 h-4" />} onClick={() => handleOpenModal()}>
+          Add Student
+        </Button>
       </div>
 
       <Card>
@@ -142,6 +185,64 @@ export default function StudentsPage() {
           />
         </CardContent>
       </Card>
+
+      {/* Add/Edit Modal */}
+      <Modal open={isModalOpen} onOpenChange={setIsModalOpen}>
+        <ModalContent>
+          <ModalHeader>
+            <ModalTitle>{editingId ? 'Edit Student' : 'Add New Student'}</ModalTitle>
+          </ModalHeader>
+          <div className="grid gap-4 py-4">
+            <div className="grid grid-cols-2 gap-4">
+              <Input 
+                label="First Name" 
+                placeholder="John" 
+                value={formData.firstName}
+                onChange={(e) => setFormData({ ...formData, firstName: e.target.value })}
+              />
+              <Input 
+                label="Last Name" 
+                placeholder="Doe" 
+                value={formData.lastName}
+                onChange={(e) => setFormData({ ...formData, lastName: e.target.value })}
+              />
+            </div>
+            <Input 
+              label="Email Address" 
+              type="email" 
+              placeholder="john@gccschool.com"
+              value={formData.email}
+              onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+              disabled={!!editingId}
+            />
+            <Input 
+              label="Enrollment Number" 
+              placeholder="EN1004" 
+              value={formData.enrollmentNumber}
+              onChange={(e) => setFormData({ ...formData, enrollmentNumber: e.target.value })}
+            />
+            <Button onClick={handleSave} isLoading={submitting} className="mt-2 w-full">
+              {editingId ? 'Save Changes' : 'Create Student'}
+            </Button>
+          </div>
+        </ModalContent>
+      </Modal>
+
+      {/* Delete Confirmation Modal */}
+      <Modal open={isDeleteModalOpen} onOpenChange={setIsDeleteModalOpen}>
+        <ModalContent>
+          <ModalHeader>
+            <ModalTitle>Confirm Deletion</ModalTitle>
+          </ModalHeader>
+          <div className="py-4">
+            <p className="text-(--text-muted)">Are you sure you want to delete this student? This action cannot be undone.</p>
+            <div className="flex space-x-4 mt-6">
+              <Button variant="outline" className="flex-1" onClick={() => setIsDeleteModalOpen(false)}>Cancel</Button>
+              <Button variant="default" className="flex-1 bg-red-500 hover:bg-red-600 text-white" isLoading={submitting} onClick={confirmDelete}>Delete</Button>
+            </div>
+          </div>
+        </ModalContent>
+      </Modal>
     </div>
   );
 }

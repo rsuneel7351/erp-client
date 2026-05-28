@@ -5,16 +5,17 @@ import clsx from 'clsx';
 import { twMerge } from 'tailwind-merge';
 
 const buttonVariants = cva(
-  'inline-flex items-center justify-center rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 disabled:pointer-events-none disabled:opacity-50',
+  'inline-flex items-center justify-center rounded-lg text-sm font-semibold transition-all duration-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-(--color-accent-400) disabled:pointer-events-none disabled:opacity-50 relative overflow-hidden group',
   {
     variants: {
       variant: {
-        default: 'bg-(--color-primary) text-white hover:bg-(--color-primary-600) shadow-sm',
-        destructive: 'bg-danger text-white hover:bg-danger/90',
-        outline: 'border border-(--bg-border) bg-transparent hover:bg-(--bg-surface-2) text-(--text-primary)',
-        secondary: 'bg-(--bg-surface-2) text-(--text-primary) hover:bg-(--bg-border)',
-        ghost: 'hover:bg-(--bg-surface-2) hover:text-(--text-primary)',
-        link: 'text-(--color-primary) underline-offset-4 hover:underline',
+        default: 'bg-(--color-surface) text-white border border-(--color-surface-border) hover:bg-(--color-surface-hover) hover:border-(--color-accent-500) hover:shadow-[0_0_15px_rgba(191,0,255,0.4)] backdrop-blur-md',
+        primary: 'bg-gradient-to-r from-(--color-accent-500) to-(--color-accent-400) text-white shadow-[0_0_15px_rgba(191,0,255,0.3)] hover:shadow-[0_0_25px_rgba(0,240,255,0.6)] hover:scale-[1.02]',
+        destructive: 'bg-red-500/20 text-red-200 border border-red-500/50 hover:bg-red-500/40 hover:shadow-[0_0_15px_rgba(239,68,68,0.4)]',
+        outline: 'border border-(--color-surface-border) bg-transparent hover:bg-(--color-surface-hover) text-gray-200 hover:border-(--color-accent-400)',
+        secondary: 'bg-(--color-surface-active) text-gray-200 hover:bg-(--color-surface-hover)',
+        ghost: 'hover:bg-(--color-surface) text-gray-300 hover:text-white',
+        link: 'text-(--color-accent-400) underline-offset-4 hover:underline hover:text-(--color-accent-500)',
       },
       size: {
         default: 'h-10 px-4 py-2',

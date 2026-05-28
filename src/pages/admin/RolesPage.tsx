@@ -1,11 +1,11 @@
 import { useState, useEffect } from 'react';
-import { api } from '@/services/api';
-import { DataTable, Column } from '@/components/ui/DataTable';
+import { DataTable, type Column } from '@/components/ui/DataTable';
 import { Card, CardHeader, CardContent } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { Modal, ModalContent, ModalHeader, ModalTitle, ModalTrigger } from '@/components/ui/Modal';
 import { ShieldCheck, Plus, Search } from 'lucide-react';
+import apiClient from '@/services/api.client';
 
 interface Role {
   id: string;
@@ -23,7 +23,7 @@ export default function RolesPage() {
   const fetchRoles = async () => {
     try {
       setLoading(true);
-      const response = await api.get('/roles');
+      const response = await apiClient.get('/roles');
       setRoles(response.data.data || []);
     } catch (error) {
       console.error('Failed to fetch roles', error);
